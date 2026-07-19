@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { createClient } from '@/lib/supabase/client'
+import { Spinner } from '@/components/Spinner'
 
 type EventInfo = {
   id: string
@@ -79,16 +80,19 @@ export function EventQRButton({ event, userId }: { event: EventInfo; userId: str
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2620]/40 px-6"
+          className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[#1C2620]/40 px-6"
           onClick={(e) => e.target === e.currentTarget && setOpen(false)}
         >
-          <div className="flex w-full max-w-xs flex-col items-center rounded-2xl border border-[#1C2620]/10 bg-white p-6 text-center shadow-lg">
+          <div className="flex w-full max-w-xs animate-scale-in flex-col items-center rounded-2xl border border-[#1C2620]/10 bg-white p-6 text-center shadow-lg">
             <p className="font-[family-name:var(--font-display)] text-base font-semibold text-[#1C2620]">
               {event.title}
             </p>
 
             {loading && (
-              <p className="mt-8 mb-8 text-sm text-[#1C2620]/60">Generating…</p>
+              <div className="mt-8 mb-8 flex flex-col items-center gap-2 text-sm text-[#1C2620]/60">
+                <Spinner className="h-6 w-6 text-[#2F6F4E]" />
+                Generating…
+              </div>
             )}
 
             {!loading && error && (
@@ -99,7 +103,7 @@ export function EventQRButton({ event, userId }: { event: EventInfo; userId: str
 
             {!loading && !error && signature && (
               <>
-                <div className="mt-4 rounded-xl border border-dashed border-[#1C2620]/15 p-3">
+                <div className="mt-4 animate-clay-pop rounded-xl border border-dashed border-[#1C2620]/15 p-3">
                   <QRCodeSVG
                     value={JSON.stringify({ signature, event_id: event.id })}
                     size={180}

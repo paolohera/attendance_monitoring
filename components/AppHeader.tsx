@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Spinner } from '@/components/Spinner'
 
 export function AppHeader({ role }: { role: string }) {
   const router = useRouter()
@@ -41,7 +42,7 @@ export function AppHeader({ role }: { role: string }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="signout-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2620]/40 px-6"
+          className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[#1C2620]/40 px-6"
           onClick={(e) => {
             if (e.target === e.currentTarget && !signingOut) setConfirmOpen(false)
           }}
@@ -49,7 +50,7 @@ export function AppHeader({ role }: { role: string }) {
             if (e.key === 'Escape' && !signingOut) setConfirmOpen(false)
           }}
         >
-          <div className="w-full max-w-sm rounded-2xl border border-[#1C2620]/10 bg-white p-6 shadow-lg">
+          <div className="w-full max-w-sm animate-scale-in rounded-2xl border border-[#1C2620]/10 bg-white p-6 shadow-lg">
             <h2
               id="signout-title"
               className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#1C2620]"
@@ -71,8 +72,9 @@ export function AppHeader({ role }: { role: string }) {
               <button
                 onClick={handleConfirmSignOut}
                 disabled={signingOut}
-                className="rounded-md bg-[#B3453A] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#96392F] disabled:opacity-50"
+                className="clay-transition flex items-center gap-2 rounded-md bg-[#B3453A] px-4 py-2 text-sm font-medium text-white hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60"
               >
+                {signingOut && <Spinner className="h-4 w-4" />}
                 {signingOut ? 'Signing out…' : 'Sign out'}
               </button>
             </div>

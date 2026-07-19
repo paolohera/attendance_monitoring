@@ -2,14 +2,18 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { AppHeader } from '@/components/AppHeader'
 import { EventQRButton } from '@/components/EventQRButton'
+import { ClayAvatar } from '@/components/ClayAvatar'
 
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
+const clayShadow = {
+  boxShadow:
+    '10px 10px 24px rgba(168,155,130,0.3), -8px -8px 20px rgba(255,255,255,0.9)',
+}
+
+const AVATAR_TONES = ['mint', 'peach', 'sky', 'blush'] as const
+
+function toneForName(name: string) {
+  const sum = name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  return AVATAR_TONES[sum % AVATAR_TONES.length]
 }
 
 export default async function DashboardPage() {
@@ -44,27 +48,31 @@ export default async function DashboardPage() {
   const fullName = profile?.full_name ?? 'Student'
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F3EFE7]">
       <AppHeader role={profile?.role ?? 'student'} />
 
       <main className="mx-auto max-w-md px-6 py-12">
-        <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[#1C2620]/50">
+        <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[#3A362E]/45">
           Your attendance pass
         </p>
 
-        <div className="mt-3 flex overflow-hidden rounded-2xl border border-[#1C2620]/10 bg-white shadow-sm">
-          <div className="flex w-20 flex-shrink-0 items-center justify-center bg-[#2F6F4E] font-[family-name:var(--font-display)] text-2xl font-semibold text-white">
-            {getInitials(fullName)}
-          </div>
-          <div className="flex-1 border-l border-dashed border-[#1C2620]/15 px-5 py-4">
-            <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#1C2620]">
+        <div
+          className="mt-3 flex items-center gap-4 rounded-[28px] bg-white px-5 py-5"
+          style={clayShadow}
+        >
+          <ClayAvatar
+            tone={toneForName(fullName)}
+            className="h-16 w-16 flex-shrink-0 rounded-full"
+          />
+          <div>
+            <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#3A362E]">
               {fullName}
             </p>
-            <p className="mt-0.5 font-[family-name:var(--font-mono)] text-sm text-[#1C2620]/60">
+            <p className="mt-0.5 font-[family-name:var(--font-mono)] text-sm text-[#3A362E]/50">
               {student?.student_id ?? '—'}
             </p>
             <div className="mt-3 flex gap-2">
-              <span className="rounded-full bg-[#E3EFE7] px-2.5 py-1 text-xs font-medium text-[#2F6F4E]">
+              <span className="rounded-full bg-[#DCEEE1] px-2.5 py-1 text-xs font-medium text-[#4C8266]">
                 {student?.section ?? 'No section'}
               </span>
             </div>
@@ -72,27 +80,32 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-10">
-          <h2 className="font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-wide text-[#1C2620]/50">
+          <h2 className="font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-wide text-[#3A362E]/45">
             Upcoming events
           </h2>
 
           {(!events || events.length === 0) && (
-            <p className="mt-3 text-sm text-[#1C2620]/60">
-              Nothing yet — events you can check in to will show up here once SSC creates them.
+            <p className="mt-3 text-sm text-[#3A362E]/55">
+              Nothing yet — events you can check in to will show up here once
+              SSC creates them.
             </p>
           )}
 
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="mt-3 flex flex-col gap-3">
             {events?.map((event) => (
               <div
                 key={event.id}
-                className="flex items-center justify-between rounded-xl border border-[#1C2620]/10 bg-white px-4 py-3"
+                className="flex items-center justify-between rounded-2xl bg-white px-4 py-3"
+                style={{
+                  boxShadow:
+                    '6px 6px 14px rgba(168,155,130,0.25), -5px -5px 12px rgba(255,255,255,0.9)',
+                }}
               >
                 <div>
-                  <p className="font-[family-name:var(--font-display)] font-medium text-[#1C2620]">
+                  <p className="font-[family-name:var(--font-display)] font-medium text-[#3A362E]">
                     {event.title}
                   </p>
-                  <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#1C2620]/50">
+                  <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
                     {new Date(event.start_time).toLocaleString()}
                     {event.location ? ` · ${event.location}` : ''}
                   </p>
