@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { CreateEventForm } from '@/components/CreateEventForm'
 
@@ -62,9 +63,17 @@ export default async function StaffPage() {
                   {event.location ? ` · ${event.location}` : ''}
                 </p>
               </div>
-              <span className="rounded-full bg-[#E3EFE7] px-2.5 py-1 text-xs font-medium text-[#2F6F4E]">
-                {event.status}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="rounded-full bg-[#E3EFE7] px-2.5 py-1 text-xs font-medium text-[#2F6F4E]">
+                  {event.status}
+                </span>
+                <Link
+                  href={`/staff/scan/${event.id}`}
+                  className="rounded-md bg-[#1C2620] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#1C2620]/85"
+                >
+                  Scan
+                </Link>
+              </div>
             </div>
           ))}
         </div>

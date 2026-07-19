@@ -18,28 +18,36 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (signInError || !signInData.user) {
+      if (signInError || !signInData.user) {
+        setError('Incorrect email or password.')
+        return
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', signInData.user.id)
+        .single()
+
+      if (profileError) {
+        setError('Signed in, but could not load your profile. Check your connection and try again.')
+        return
+      }
+
+      const destination = profile?.role === 'student' ? '/dashboard' : '/staff'
+      router.push(destination)
+      router.refresh()
+    } catch {
+      setError('Could not reach the server. Check your internet connection and try again.')
+    } finally {
       setLoading(false)
-      setError('Incorrect email or password.')
-      return
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', signInData.user.id)
-      .single()
-
-    setLoading(false)
-
-    const destination = profile?.role === 'student' ? '/dashboard' : '/staff'
-    router.push(destination)
-    router.refresh()
   }
 
   return (
