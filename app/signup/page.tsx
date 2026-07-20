@@ -176,7 +176,7 @@ export default function SignupPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 style={inputShadow}
                 className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none placeholder:text-[#3A362E]/35"
-                placeholder="Juan Dela Cruz"
+                placeholder="Zedrick Cabahug"
               />
             </Field>
 
@@ -188,7 +188,7 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 style={inputShadow}
                 className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none placeholder:text-[#3A362E]/35"
-                placeholder="you@example.com"
+                placeholder="ej@yahoo.com"
               />
             </Field>
 
@@ -199,7 +199,7 @@ export default function SignupPage() {
                 onChange={(e) => setStudentId(e.target.value)}
                 style={inputShadow}
                 className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none placeholder:text-[#3A362E]/35"
-                placeholder="2023-00123"
+                placeholder="94-030300"
               />
             </Field>
 
@@ -210,7 +210,7 @@ export default function SignupPage() {
                 onChange={(e) => setSection(e.target.value)}
                 style={inputShadow}
                 className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none placeholder:text-[#3A362E]/35"
-                placeholder="BSIT 3A"
+                placeholder="BSAMT A-3"
               />
             </Field>
 
