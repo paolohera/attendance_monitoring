@@ -35,7 +35,7 @@ export default async function DashboardPage() {
 
   const { data: student } = await supabase
     .from('students')
-    .select('student_id, section')
+    .select('student_id, section, gender')
     .eq('id', user.id)
     .single()
 
@@ -52,18 +52,31 @@ export default async function DashboardPage() {
       <AppHeader role={profile?.role ?? 'student'} />
 
       <main className="mx-auto max-w-md px-6 py-12">
-        <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[#3A362E]/45">
+        <p className="animate-fade-in-up font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[#3A362E]/45">
           Your attendance pass
         </p>
 
         <div
-          className="mt-3 flex items-center gap-4 rounded-[28px] bg-white px-5 py-5"
-          style={clayShadow}
+          className="mt-3 flex animate-fade-in-up items-center gap-4 rounded-[28px] bg-white px-5 py-5"
+          style={{ ...clayShadow, animationDelay: '60ms' }}
         >
-          <ClayAvatar
-            tone={toneForName(fullName)}
-            className="h-16 w-16 flex-shrink-0 rounded-full"
-          />
+          {student?.gender ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={`/avatars/${student.gender}.png`}
+              alt=""
+              className="h-16 w-16 flex-shrink-0 rounded-full object-cover"
+              style={{
+                boxShadow:
+                  '4px 4px 10px rgba(168,155,130,0.25), -3px -3px 8px rgba(255,255,255,0.9)',
+              }}
+            />
+          ) : (
+            <ClayAvatar
+              tone={toneForName(fullName)}
+              className="h-16 w-16 flex-shrink-0 rounded-full"
+            />
+          )}
           <div>
             <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#3A362E]">
               {fullName}
@@ -79,7 +92,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-10 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
           <h2 className="font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-wide text-[#3A362E]/45">
             Upcoming events
           </h2>
@@ -92,13 +105,14 @@ export default async function DashboardPage() {
           )}
 
           <div className="mt-3 flex flex-col gap-3">
-            {events?.map((event) => (
+            {events?.map((event, i) => (
               <div
                 key={event.id}
-                className="flex items-center justify-between rounded-2xl bg-white px-4 py-3"
+                className="clay-transition flex animate-fade-in-up items-center justify-between rounded-2xl bg-white px-4 py-3 hover:-translate-y-0.5"
                 style={{
                   boxShadow:
                     '6px 6px 14px rgba(168,155,130,0.25), -5px -5px 12px rgba(255,255,255,0.9)',
+                  animationDelay: `${180 + i * 60}ms`,
                 }}
               >
                 <div>

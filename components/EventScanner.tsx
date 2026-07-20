@@ -135,12 +135,18 @@ export function EventScanner({ event }: { event: EventInfo }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="flex items-center gap-2 text-sm text-[#1C2620]/60">
+      <div className="flex items-center gap-2 text-sm text-[#3A362E]/60">
         <span className="font-[family-name:var(--font-mono)]">{count}</span>
         <span>checked in</span>
       </div>
 
-      <div className="relative mt-4 aspect-square w-full max-w-xs overflow-hidden rounded-2xl border border-[#1C2620]/10 bg-black">
+      <div
+        className="relative mt-4 aspect-square w-full max-w-xs overflow-hidden rounded-[28px] bg-black"
+        style={{
+          boxShadow:
+            '10px 10px 24px rgba(168,155,130,0.3), -8px -8px 20px rgba(255,255,255,0.9)',
+        }}
+      >
         {cameraError ? (
           <div className="flex h-full items-center justify-center px-6 text-center text-sm text-white/80">
             {cameraError}
@@ -152,12 +158,13 @@ export function EventScanner({ event }: { event: EventInfo }) {
       </div>
 
       <div
-        className={`mt-4 w-full max-w-xs rounded-xl px-4 py-3 text-center text-sm font-medium transition ${
+        key={lastResult ? `${lastResult.success}-${lastResult.student_id ?? lastResult.reason}-${Date.now()}` : 'idle'}
+        className={`mt-4 w-full max-w-xs animate-scale-in rounded-2xl px-4 py-3 text-center text-sm font-medium transition ${
           lastResult === null
-            ? 'bg-[#1C2620]/5 text-[#1C2620]/40'
+            ? 'bg-white/60 text-[#3A362E]/40'
             : lastResult.success
-              ? 'bg-[#E3EFE7] text-[#2F6F4E]'
-              : 'bg-[#F5E3E1] text-[#B3453A]'
+              ? 'bg-[#DCEEE1] text-[#4C8266]'
+              : 'bg-[#F3D9D4] text-[#B3453A]'
         }`}
       >
         {lastResult === null && 'Point the camera at a student QR code.'}

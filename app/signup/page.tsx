@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Spinner } from '@/components/Spinner'
@@ -22,11 +23,13 @@ const buttonShadow = {
 
 export default function SignupPage() {
   const supabase = createClient()
+  const router = useRouter()
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [studentId, setStudentId] = useState('')
   const [section, setSection] = useState('')
+  const [gender, setGender] = useState<'male' | 'female' | ''>('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
@@ -38,6 +41,10 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
 
+    if (!gender) {
+      setError('Please select male or female.')
+      return
+    }
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
       return
@@ -57,6 +64,7 @@ export default function SignupPage() {
           full_name: fullName,
           student_id: studentId,
           section,
+          gender,
           role: 'student',
         },
       },
@@ -76,6 +84,15 @@ export default function SignupPage() {
     setSubmitted(true)
   }
 
+  useEffect(() => {
+    if (!submitted) return
+    const timeout = setTimeout(() => {
+      router.push('/dashboard')
+      router.refresh()
+    }, 1400)
+    return () => clearTimeout(timeout)
+  }, [submitted, router])
+
   if (submitted) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#F3EFE7] px-6">
@@ -83,12 +100,24 @@ export default function SignupPage() {
           className="w-full max-w-sm animate-scale-in rounded-[28px] bg-white p-8 text-center"
           style={clayShadow}
         >
-          <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[#3A362E]">
-            Check your email
+          <div
+            className="mx-auto flex h-14 w-14 animate-clay-pop items-center justify-center rounded-full bg-[#DCEEE1]"
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 13l4 4L19 7"
+                stroke="#4C8266"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <h1 className="mt-4 font-[family-name:var(--font-display)] text-xl font-semibold text-[#3A362E]">
+            Account created successfully
           </h1>
           <p className="mt-2 text-sm text-[#3A362E]/60">
-            We sent a confirmation link to {email}. Confirm your address to
-            finish setting up your account.
+            Taking you to your dashboard…
           </p>
         </div>
       </main>
@@ -184,6 +213,55 @@ export default function SignupPage() {
                 placeholder="BSIT 3A"
               />
             </Field>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-[#3A362E]/75">Avatar</span>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setGender('male')}
+                  style={
+                    gender === 'male'
+                      ? {
+                          boxShadow:
+                            '5px 5px 12px rgba(168,155,130,0.28), -4px -4px 10px rgba(255,255,255,0.9)',
+                        }
+                      : inputShadow
+                  }
+                  className={`clay-transition flex flex-col items-center gap-2 rounded-2xl px-3 py-3 ${
+                    gender === 'male'
+                      ? 'bg-[#DCEEE1] text-[#4C8266]'
+                      : 'bg-[#F3EFE7] text-[#3A362E]/60'
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/avatars/male.png" alt="" className="h-14 w-14 object-contain" />
+                  <span className="text-xs font-medium">Male</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setGender('female')}
+                  style={
+                    gender === 'female'
+                      ? {
+                          boxShadow:
+                            '5px 5px 12px rgba(168,155,130,0.28), -4px -4px 10px rgba(255,255,255,0.9)',
+                        }
+                      : inputShadow
+                  }
+                  className={`clay-transition flex flex-col items-center gap-2 rounded-2xl px-3 py-3 ${
+                    gender === 'female'
+                      ? 'bg-[#DCEEE1] text-[#4C8266]'
+                      : 'bg-[#F3EFE7] text-[#3A362E]/60'
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/avatars/female.png" alt="" className="h-14 w-14 object-contain" />
+                  <span className="text-xs font-medium">Female</span>
+                </button>
+              </div>
+            </div>
 
             <Field label="Password">
               <input
