@@ -74,6 +74,16 @@ export default async function StaffPage() {
                   {event.status}
                 </span>
                 <Link
+                  href={`/staff/attendance/${event.id}`}
+                  className="clay-transition rounded-2xl bg-white px-3 py-1.5 text-xs font-medium text-[#3A362E] hover:-translate-y-0.5 active:translate-y-0"
+                  style={{
+                    boxShadow:
+                      '4px 4px 10px rgba(168,155,130,0.25), -3px -3px 8px rgba(255,255,255,0.9)',
+                  }}
+                >
+                  Attendance
+                </Link>
+                <Link
                   href={`/staff/scan/${event.id}`}
                   className="clay-transition rounded-2xl bg-[#3A362E] px-3 py-1.5 text-xs font-medium text-white hover:-translate-y-0.5 active:translate-y-0"
                 >

@@ -15,10 +15,12 @@ type ScanResult = {
   student_name?: string
   student_id?: string
   section?: string
+  status?: string
 }
 
 const REASON_MESSAGES: Record<string, string> = {
   invalid_token: 'QR code not recognized.',
+  rpc_error: 'Scan failed — check console for details.',
   already_used: 'This QR was already scanned.',
   expired: 'This QR has expired.',
   event_not_active: 'This event is not active.',
@@ -73,7 +75,8 @@ export function EventScanner({ event }: { event: EventInfo }) {
       busyRef.current = false
 
       if (error) {
-        setLastResult({ success: false, reason: 'invalid_token' })
+        console.error('record_attendance_scan RPC error:', error)
+        setLastResult({ success: false, reason: 'rpc_error' })
         return
       }
 
@@ -168,8 +171,16 @@ export function EventScanner({ event }: { event: EventInfo }) {
         }`}
       >
         {lastResult === null && 'Point the camera at a student QR code.'}
-        {lastResult?.success &&
-          `${lastResult.student_name} — ${lastResult.student_id} (${lastResult.section})`}
+        {lastResult?.success && (
+          <>
+            {lastResult.student_name} — {lastResult.student_id} ({lastResult.section})
+            {lastResult.status === 'late' && (
+              <span className="ml-1.5 rounded-full bg-[#F3D9D4] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#B3453A]">
+                Late
+              </span>
+            )}
+          </>
+        )}
         {lastResult && !lastResult.success &&
           (REASON_MESSAGES[lastResult.reason ?? ''] ?? 'Scan failed.')}
       </div>

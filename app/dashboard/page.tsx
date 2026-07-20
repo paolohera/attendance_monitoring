@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { EventQRButton } from '@/components/EventQRButton'
 import { ClayAvatar } from '@/components/ClayAvatar'
@@ -92,7 +93,16 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-10 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
+        <div className="mt-3 animate-fade-in-up text-right" style={{ animationDelay: '80ms' }}>
+          <Link
+            href="/dashboard/history"
+            className="clay-transition text-xs font-medium text-[#4C8266] hover:text-[#3A362E]"
+          >
+            View attendance history →
+          </Link>
+        </div>
+
+        <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
           <h2 className="font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-wide text-[#3A362E]/45">
             Upcoming events
           </h2>
