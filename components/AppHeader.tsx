@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Spinner } from '@/components/Spinner'
@@ -32,7 +33,10 @@ export function AppHeader({ role }: { role: string }) {
   return (
     <>
       <header className="flex items-center justify-between bg-[#F3EFE7] px-6 py-5">
-        <div className="flex items-center gap-2">
+        <Link
+          href={role === 'student' ? '/dashboard' : '/staff'}
+          className="clay-transition flex items-center gap-2 hover:opacity-80"
+        >
           <span className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-[#3A362E]">
             Attendance
           </span>
@@ -42,13 +46,48 @@ export function AppHeader({ role }: { role: string }) {
           >
             {role}
           </span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/profile"
+            aria-label="Profile"
+            title="Profile"
+            className="clay-transition flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+              <path
+                d="M5 20c0-3.5 3.13-6 7-6s7 2.5 7 6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </Link>
+          <button
+            onClick={() => setConfirmOpen(true)}
+            aria-label="Sign out"
+            title="Sign out"
+            className="clay-transition flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M16 15l4-3-4-3M20 12H9"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
-        <button
-          onClick={() => setConfirmOpen(true)}
-          className="clay-transition text-sm text-[#3A362E]/55 hover:text-[#3A362E]"
-        >
-          Sign out
-        </button>
       </header>
 
       {confirmOpen && createPortal(

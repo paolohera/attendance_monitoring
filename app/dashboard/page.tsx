@@ -30,7 +30,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, role')
+    .select('full_name, role, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -61,7 +61,18 @@ export default async function DashboardPage() {
           className="mt-3 flex animate-fade-in-up items-center gap-4 rounded-[28px] bg-white px-5 py-5"
           style={{ ...clayShadow, animationDelay: '60ms' }}
         >
-          {student?.gender ? (
+          {profile?.avatar_url ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="h-16 w-16 flex-shrink-0 rounded-full object-cover"
+              style={{
+                boxShadow:
+                  '4px 4px 10px rgba(168,155,130,0.25), -3px -3px 8px rgba(255,255,255,0.9)',
+              }}
+            />
+          ) : student?.gender ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={`/avatars/${student.gender}.png`}
@@ -78,15 +89,15 @@ export default async function DashboardPage() {
               className="h-16 w-16 flex-shrink-0 rounded-full"
             />
           )}
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#3A362E]">
               {fullName}
             </p>
-            <p className="mt-0.5 font-[family-name:var(--font-mono)] text-sm text-[#3A362E]/50">
-              {student?.student_id ?? '—'}
-            </p>
-            <div className="mt-3 flex gap-2">
-              <span className="rounded-full bg-[#DCEEE1] px-2.5 py-1 text-xs font-medium text-[#4C8266]">
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <span className="font-[family-name:var(--font-mono)] text-sm text-[#3A362E]/50">
+                {student?.student_id ?? '—'}
+              </span>
+              <span className="flex-shrink-0 rounded-full bg-[#DCEEE1] px-2.5 py-1 text-xs font-medium text-[#4C8266]">
                 {student?.section ?? 'No section'}
               </span>
             </div>
@@ -118,22 +129,44 @@ export default async function DashboardPage() {
             {events?.map((event, i) => (
               <div
                 key={event.id}
-                className="clay-transition flex animate-fade-in-up items-center justify-between rounded-2xl bg-white px-4 py-3 hover:-translate-y-0.5"
+                className="clay-transition flex animate-fade-in-up items-center justify-between gap-3 rounded-2xl bg-white p-4 hover:-translate-y-0.5"
                 style={{
                   boxShadow:
                     '6px 6px 14px rgba(168,155,130,0.25), -5px -5px 12px rgba(255,255,255,0.9)',
                   animationDelay: `${180 + i * 60}ms`,
                 }}
               >
-                <div>
-                  <p className="font-[family-name:var(--font-display)] font-medium text-[#3A362E]">
+                <div className="min-w-0 flex-1">
+                  <p className="font-[family-name:var(--font-display)] font-semibold text-[#3A362E]">
                     {event.title}
                   </p>
-                  <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
-                    {new Date(event.start_time).toLocaleString()}
-                    {event.location ? ` · ${event.location}` : ''}
+                  <p className="mt-1.5 flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs text-[#4C8266]">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                    {new Date(event.start_time).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
                   </p>
+                  {event.location && (
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-[#3A362E]/45">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                        <path
+                          d="M12 21s7-6.5 7-11.5a7 7 0 1 0-14 0C5 14.5 12 21 12 21z"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        />
+                        <circle cx="12" cy="9.5" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+                      </svg>
+                      {event.location}
+                    </p>
+                  )}
                 </div>
+
                 <EventQRButton
                   event={{ id: event.id, title: event.title, end_time: event.end_time }}
                   userId={user.id}

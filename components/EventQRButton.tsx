@@ -72,13 +72,23 @@ export function EventQRButton({ event, userId }: { event: EventInfo; userId: str
     <>
       <button
         onClick={handleGenerate}
+        aria-label={`Generate QR for ${event.title}`}
+        title="Generate QR"
         style={{
           boxShadow:
-            '5px 5px 12px rgba(168,155,130,0.28), -4px -4px 10px rgba(255,255,255,0.9)',
+            '4px 4px 10px rgba(168,155,130,0.28), -3px -3px 8px rgba(255,255,255,0.9)',
         }}
-        className="clay-transition rounded-2xl bg-[#8FC1A3] px-3.5 py-2 text-xs font-medium text-[#28402F] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+        className="clay-transition flex h-9 w-9 items-center justify-center rounded-full bg-[#8FC1A3] text-[#28402F] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.95]"
       >
-        Generate QR
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+          <path
+            d="M14 14h3v3h-3zM20 14h1v1h-1zM14 20h1v1h-1zM17 17h1v1h-1zM20 20h1v1h-1z"
+            fill="currentColor"
+          />
+        </svg>
       </button>
 
       {open && createPortal(

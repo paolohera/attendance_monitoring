@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
-import { Space_Grotesk, Inter, IBM_Plex_Mono } from 'next/font/google'
+import { Baloo_2, Inter, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 
-const spaceGrotesk = Space_Grotesk({
+const baloo2 = Baloo_2({
   subsets: ['latin'],
+  weight: ['500', '600', '700'],
   variable: '--font-display',
 })
 
@@ -57,7 +58,7 @@ export default function RootLayout({
         `}</style>
       </head>
       <body
-        className={`${spaceGrotesk.variable} ${inter.variable} ${plexMono.variable} font-[family-name:var(--font-body)] antialiased bg-[#F7F6F2] text-[#1C2620]`}
+        className={`${baloo2.variable} ${inter.variable} ${plexMono.variable} font-[family-name:var(--font-body)] antialiased bg-[#F7F6F2] text-[#1C2620]`}
       >
         {children}
       </body>
