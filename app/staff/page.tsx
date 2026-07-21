@@ -22,7 +22,7 @@ export default async function StaffPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -33,11 +33,12 @@ export default async function StaffPage() {
   const { data: events } = await supabase
     .from('events')
     .select('id, title, location, start_time, end_time, status, requires_time_out')
+    .gt('end_time', new Date().toISOString())
     .order('start_time', { ascending: true })
 
   return (
     <div className="min-h-screen bg-[#F3EFE7]">
-      <AppHeader role={profile.role} />
+      <AppHeader role={profile.role} avatarUrl={profile.avatar_url} fullName={profile.full_name ?? undefined} />
 
       <main className="mx-auto max-w-2xl px-6 py-12">
         <div className="flex animate-fade-in-up items-center justify-between">
@@ -50,7 +51,7 @@ export default async function StaffPage() {
         <div className="mt-6 flex flex-col gap-3">
           {(!events || events.length === 0) && (
             <p className="animate-fade-in-up text-sm text-[#3A362E]/55" style={{ animationDelay: '80ms' }}>
-              No events yet. Create one to get started.
+              No upcoming events. Create one to get started.
             </p>
           )}
 

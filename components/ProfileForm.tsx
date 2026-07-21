@@ -96,6 +96,16 @@ export function ProfileForm({
   const [saved, setSaved] = useState(false)
   const [avatarSaved, setAvatarSaved] = useState(false)
 
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordSaved, setPasswordSaved] = useState(false)
+
+  const [activeTab, setActiveTab] = useState<'details' | 'password'>('details')
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   const isStudent = role === 'student'
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -196,6 +206,37 @@ export function ProfileForm({
     setTimeout(() => setSaved(false), 2500)
   }
 
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault()
+    setPasswordError(null)
+    setPasswordSaved(false)
+
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters.')
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('Passwords do not match.')
+      return
+    }
+
+    setChangingPassword(true)
+    const { error: passwordUpdateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+    setChangingPassword(false)
+
+    if (passwordUpdateError) {
+      setPasswordError(passwordUpdateError.message || 'Could not update password. Try again.')
+      return
+    }
+
+    setNewPassword('')
+    setConfirmNewPassword('')
+    setPasswordSaved(true)
+    setTimeout(() => setPasswordSaved(false), 2500)
+  }
+
   const defaultAvatarSrc = gender ? `/avatars/${gender}.png` : null
 
   return (
@@ -269,6 +310,37 @@ export function ProfileForm({
         )}
       </div>
 
+      <div
+        className="mt-6 flex gap-1 rounded-2xl bg-[#F3EFE7] p-1"
+        style={inputShadow}
+      >
+        <button
+          type="button"
+          onClick={() => setActiveTab('details')}
+          style={activeTab === 'details' ? clayShadowSm : undefined}
+          className={`clay-transition flex-1 rounded-xl py-2 text-sm font-medium ${
+            activeTab === 'details'
+              ? 'bg-white text-[#3A362E]'
+              : 'text-[#3A362E]/50 hover:text-[#3A362E]'
+          }`}
+        >
+          Details
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('password')}
+          style={activeTab === 'password' ? clayShadowSm : undefined}
+          className={`clay-transition flex-1 rounded-xl py-2 text-sm font-medium ${
+            activeTab === 'password'
+              ? 'bg-white text-[#3A362E]'
+              : 'text-[#3A362E]/50 hover:text-[#3A362E]'
+          }`}
+        >
+          Password
+        </button>
+      </div>
+
+      {activeTab === 'details' && (
       <form onSubmit={handleSave} className="mt-6 flex flex-col gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-[#3A362E]/75">Full name</span>
@@ -377,6 +449,166 @@ export function ProfileForm({
           {saving ? 'Saving…' : 'Save changes'}
         </button>
       </form>
+      )}
+
+      {activeTab === 'password' && (
+      <form onSubmit={handlePasswordChange} className="mt-6 flex flex-col gap-4">
+        <p className="-mt-2 text-xs text-[#3A362E]/50">
+          Use at least 8 characters.
+        </p>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-[#3A362E]/75">New password</span>
+          <div className="relative">
+            <input
+              required
+              type={showNewPassword ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={inputShadow}
+              className="w-full rounded-2xl bg-[#F3EFE7] px-4 py-2.5 pr-11 text-sm text-[#3A362E] outline-none"
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword((v) => !v)}
+              aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+              tabIndex={-1}
+              className="clay-transition absolute right-3 top-1/2 -translate-y-1/2 text-[#3A362E]/40 hover:text-[#3A362E]/70"
+            >
+              {showNewPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M3 3l18 18"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M10.6 5.1A10.9 10.9 0 0 1 12 5c5.5 0 9.5 4.5 10.5 7-.4 1-1.1 2.2-2.1 3.3M6.6 6.6C4.5 8 3 10 1.5 12c1 2.5 5 7 10.5 7 1.4 0 2.7-.3 3.9-.8"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.9 10a3 3 0 0 0 4.2 4.2"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-[#3A362E]/75">Confirm new password</span>
+          <div className="relative">
+            <input
+              required
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              style={inputShadow}
+              className="w-full rounded-2xl bg-[#F3EFE7] px-4 py-2.5 pr-11 text-sm text-[#3A362E] outline-none"
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              tabIndex={-1}
+              className="clay-transition absolute right-3 top-1/2 -translate-y-1/2 text-[#3A362E]/40 hover:text-[#3A362E]/70"
+            >
+              {showConfirmPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M3 3l18 18"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M10.6 5.1A10.9 10.9 0 0 1 12 5c5.5 0 9.5 4.5 10.5 7-.4 1-1.1 2.2-2.1 3.3M6.6 6.6C4.5 8 3 10 1.5 12c1 2.5 5 7 10.5 7 1.4 0 2.7-.3 3.9-.8"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.9 10a3 3 0 0 0 4.2 4.2"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </label>
+
+        {passwordError && (
+          <p role="alert" className="text-sm text-[#B3453A]">
+            {passwordError}
+          </p>
+        )}
+        {passwordSaved && (
+          <div
+            className="flex animate-scale-in items-center gap-2 rounded-2xl bg-[#DCEEE1] px-4 py-3"
+            role="status"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+              <path
+                d="M5 13l4 4L19 7"
+                stroke="#4C8266"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-sm font-medium text-[#4C8266]">
+              Password updated successfully
+            </span>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={changingPassword}
+          style={clayShadowSm}
+          className="clay-transition mt-1 flex items-center justify-center gap-2 rounded-2xl bg-[#8FC1A3] px-4 py-3 text-sm font-medium text-[#28402F] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70"
+        >
+          {changingPassword && <Spinner className="h-4 w-4" />}
+          {changingPassword ? 'Updating…' : 'Update password'}
+        </button>
+      </form>
+      )}
     </div>
   )
 }

@@ -28,9 +28,15 @@ export default async function HistoryPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name, avatar_url')
     .eq('id', user.id)
     .single()
+
+  const { data: student } = await supabase
+    .from('students')
+    .select('gender')
+    .eq('id', user.id)
+    .maybeSingle()
 
   const { data: attendance } = await supabase
     .from('attendance')
@@ -41,7 +47,12 @@ export default async function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-[#F3EFE7]">
-      <AppHeader role={profile?.role ?? 'student'} />
+      <AppHeader
+        role={profile?.role ?? 'student'}
+        avatarUrl={profile?.avatar_url}
+        fullName={profile?.full_name ?? undefined}
+        gender={student?.gender}
+      />
 
       <main className="mx-auto max-w-md px-6 py-12">
         <Link

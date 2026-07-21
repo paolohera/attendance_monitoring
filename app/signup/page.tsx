@@ -21,6 +21,21 @@ const buttonShadow = {
     '6px 6px 14px rgba(168,155,130,0.3), -5px -5px 12px rgba(255,255,255,0.9)',
 }
 
+const SECTIONS = [
+  'G11',
+  'G12',
+  'AAMT 1 - A',
+  'AAET 1 - A',
+  'AAMT 1 - B',
+  'AAMT 2',
+  'AAET 2',
+  'BAMT 3 - A',
+  'BAMT 3 - B',
+  'BAET 3',
+  'BAMT 4',
+  'BAET 4',
+]
+
 export default function SignupPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -164,7 +179,7 @@ export default function SignupPage() {
             Create your student account
           </h1>
           <p className="mt-1 text-center text-sm text-[#3A362E]/55">
-            Use your own details — your student ID must match your official
+           your student ID must match your official
             records.
           </p>
 
@@ -176,7 +191,7 @@ export default function SignupPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 style={inputShadow}
                 className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none placeholder:text-[#3A362E]/35"
-                placeholder="Zedrick Cabahug"
+                placeholder="Kits Zedrick Cabahug"
               />
             </Field>
 
@@ -204,14 +219,39 @@ export default function SignupPage() {
             </Field>
 
             <Field label="Section">
-              <input
-                required
-                value={section}
-                onChange={(e) => setSection(e.target.value)}
-                style={inputShadow}
-                className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none placeholder:text-[#3A362E]/35"
-                placeholder="BSAMT A-3"
-              />
+              <div className="relative">
+                <select
+                  required
+                  value={section}
+                  onChange={(e) => setSection(e.target.value)}
+                  style={inputShadow}
+                  className="w-full appearance-none rounded-2xl bg-[#F3EFE7] px-4 py-2.5 pr-10 text-sm text-[#3A362E] outline-none disabled:opacity-60"
+                >
+                  <option value="" disabled>
+                    Select your section
+                  </option>
+                  {SECTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#3A362E]/45"
+                >
+                  <path
+                    d="M4 6l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </Field>
 
             <div className="flex flex-col gap-1.5">

@@ -40,17 +40,25 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
+  const nowIso = new Date().toISOString()
+
   const { data: events } = await supabase
     .from('events')
     .select('id, title, location, start_time, end_time, status')
-    .in('status', ['upcoming', 'ongoing'])
+    .gte('end_time', nowIso)
+    .neq('status', 'cancelled')
     .order('start_time', { ascending: true })
 
   const fullName = profile?.full_name ?? 'Student'
 
   return (
     <div className="min-h-screen bg-[#F3EFE7]">
-      <AppHeader role={profile?.role ?? 'student'} />
+      <AppHeader
+        role={profile?.role ?? 'student'}
+        avatarUrl={profile?.avatar_url}
+        fullName={profile?.full_name ?? undefined}
+        gender={student?.gender}
+      />
 
       <main className="mx-auto max-w-md px-6 py-12">
         <p className="animate-fade-in-up font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[#3A362E]/45">
@@ -58,9 +66,39 @@ export default async function DashboardPage() {
         </p>
 
         <div
-          className="mt-3 flex animate-fade-in-up items-center gap-4 rounded-[28px] bg-white px-5 py-5"
+          className="relative mt-3 flex animate-fade-in-up items-center gap-4 rounded-[28px] bg-white px-5 py-5"
           style={{ ...clayShadow, animationDelay: '60ms' }}
         >
+          <Link
+            href="/dashboard/history"
+            aria-label="View attendance history"
+            title="Attendance history"
+            className="clay-transition absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-[#3A362E]/45 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M3 12a9 9 0 1 0 3-6.7"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M3 4v5h5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 8v4l3 2"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+
           {profile?.avatar_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
@@ -102,15 +140,6 @@ export default async function DashboardPage() {
               </span>
             </div>
           </div>
-        </div>
-
-        <div className="mt-3 animate-fade-in-up text-right" style={{ animationDelay: '80ms' }}>
-          <Link
-            href="/dashboard/history"
-            className="clay-transition text-xs font-medium text-[#4C8266] hover:text-[#3A362E]"
-          >
-            View attendance history →
-          </Link>
         </div>
 
         <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '120ms' }}>

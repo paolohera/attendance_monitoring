@@ -29,7 +29,12 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F3EFE7]">
-      <AppHeader role={profile?.role ?? 'student'} />
+      <AppHeader
+        role={profile?.role ?? 'student'}
+        avatarUrl={profile?.avatar_url}
+        fullName={profile?.full_name ?? undefined}
+        gender={student?.gender}
+      />
 
       <main className="mx-auto max-w-sm px-6 py-12">
         <Link

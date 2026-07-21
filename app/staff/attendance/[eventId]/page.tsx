@@ -2,10 +2,18 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
+import { ClayAvatar } from '@/components/ClayAvatar'
 
 const cardShadow = {
   boxShadow:
     '6px 6px 14px rgba(168,155,130,0.25), -5px -5px 12px rgba(255,255,255,0.9)',
+}
+
+const AVATAR_TONES = ['mint', 'peach', 'sky', 'blush'] as const
+
+function toneForName(name: string) {
+  const sum = name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  return AVATAR_TONES[sum % AVATAR_TONES.length]
 }
 
 export default async function EventAttendancePage({
@@ -26,7 +34,7 @@ export default async function EventAttendancePage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -54,22 +62,33 @@ export default async function EventAttendancePage({
 
   const [{ data: students }, { data: profiles }] = await Promise.all([
     studentIds.length
-      ? supabase.from('students').select('id, student_id, section').in('id', studentIds)
-      : Promise.resolve({ data: [] as { id: string; student_id: string; section: string }[] }),
+      ? supabase
+          .from('students')
+          .select('id, student_id, section, gender')
+          .in('id', studentIds)
+      : Promise.resolve({
+          data: [] as { id: string; student_id: string; section: string; gender: 'male' | 'female' | null }[],
+        }),
     studentIds.length
-      ? supabase.from('profiles').select('id, full_name').in('id', studentIds)
-      : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
+      ? supabase.from('profiles').select('id, full_name, avatar_url').in('id', studentIds)
+      : Promise.resolve({ data: [] as { id: string; full_name: string; avatar_url: string | null }[] }),
   ])
 
-  const rows = (attendance ?? []).map((a) => ({
-    ...a,
-    student: students?.find((s) => s.id === a.student_id),
-    name: profiles?.find((p) => p.id === a.student_id)?.full_name ?? 'Unknown',
-  }))
+  const rows = (attendance ?? []).map((a) => {
+    const student = students?.find((s) => s.id === a.student_id)
+    const studentProfile = profiles?.find((p) => p.id === a.student_id)
+    return {
+      ...a,
+      student,
+      name: studentProfile?.full_name ?? 'Unknown',
+      avatarUrl: studentProfile?.avatar_url ?? null,
+      gender: student?.gender ?? null,
+    }
+  })
 
   return (
     <div className="min-h-screen bg-[#F3EFE7]">
-      <AppHeader role={profile.role} />
+      <AppHeader role={profile.role} avatarUrl={profile.avatar_url} fullName={profile.full_name ?? undefined} />
 
       <main className="mx-auto max-w-2xl px-6 py-12">
         <Link
@@ -110,14 +129,36 @@ export default async function EventAttendancePage({
               className="flex animate-fade-in-up items-center justify-between rounded-2xl bg-white px-4 py-3"
               style={{ ...cardShadow, animationDelay: `${80 + i * 40}ms` }}
             >
-              <div>
-                <p className="font-[family-name:var(--font-display)] text-sm font-medium text-[#3A362E]">
-                  {row.name}
-                </p>
-                <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
-                  {row.student?.student_id ?? '—'}
-                  {row.student?.section ? ` · ${row.student.section}` : ''}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                {row.avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={row.avatarUrl}
+                    alt=""
+                    className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
+                  />
+                ) : row.gender ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={`/avatars/${row.gender}.png`}
+                    alt=""
+                    className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <ClayAvatar
+                    tone={toneForName(row.name)}
+                    className="h-10 w-10 flex-shrink-0 rounded-full"
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="font-[family-name:var(--font-display)] text-sm font-medium text-[#3A362E]">
+                    {row.name}
+                  </p>
+                  <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
+                    {row.student?.student_id ?? '—'}
+                    {row.student?.section ? ` · ${row.student.section}` : ''}
+                  </p>
+                </div>
               </div>
               <div className="text-right">
                 <p
@@ -126,11 +167,20 @@ export default async function EventAttendancePage({
                   }`}
                 >
                   {row.status === 'late' ? 'Late' : 'In'}:{' '}
-                  {row.time_in ? new Date(row.time_in).toLocaleTimeString() : '—'}
+                  {row.time_in
+                    ? new Date(row.time_in).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })
+                    : '—'}
                 </p>
                 {row.time_out && (
                   <p className="font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/60">
-                    Out: {new Date(row.time_out).toLocaleTimeString()}
+                    Out:{' '}
+                    {new Date(row.time_out).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
                   </p>
                 )}
               </div>

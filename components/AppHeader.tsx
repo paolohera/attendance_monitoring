@@ -6,6 +6,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Spinner } from '@/components/Spinner'
+import { ClayAvatar } from '@/components/ClayAvatar'
+
+const AVATAR_TONES = ['mint', 'peach', 'sky', 'blush'] as const
+
+function toneForName(name: string) {
+  const sum = name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  return AVATAR_TONES[sum % AVATAR_TONES.length]
+}
 
 const clayShadowSm = {
   boxShadow:
@@ -17,11 +25,23 @@ const clayShadow = {
     '10px 10px 24px rgba(168,155,130,0.3), -8px -8px 20px rgba(255,255,255,0.9)',
 }
 
-export function AppHeader({ role }: { role: string }) {
+export function AppHeader({
+  role,
+  avatarUrl,
+  fullName,
+  gender,
+}: {
+  role: string
+  avatarUrl?: string | null
+  fullName?: string
+  gender?: 'male' | 'female' | null
+}) {
   const router = useRouter()
   const supabase = createClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+
+  const defaultAvatarSrc = gender ? `/avatars/${gender}.png` : null
 
   async function handleConfirmSignOut() {
     setSigningOut(true)
@@ -48,21 +68,52 @@ export function AppHeader({ role }: { role: string }) {
           </span>
         </Link>
         <div className="flex items-center gap-2">
+          {role !== 'student' && (
+            <Link
+              href="/staff/history"
+              aria-label="Event history"
+              title="History"
+              className="clay-transition flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M3 12a9 9 0 1 0 3-6.7"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M3 4v5h5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 8v4l3 2"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          )}
           <Link
             href="/profile"
             aria-label="Profile"
             title="Profile"
-            className="clay-transition flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+            className="clay-transition flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full hover:opacity-80"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8" />
-              <path
-                d="M5 20c0-3.5 3.13-6 7-6s7 2.5 7 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            {avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+            ) : defaultAvatarSrc ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={defaultAvatarSrc} alt="" className="h-9 w-9 rounded-full object-cover" />
+            ) : (
+              <ClayAvatar tone={toneForName(fullName || role)} className="h-9 w-9 rounded-full" />
+            )}
           </Link>
           <button
             onClick={() => setConfirmOpen(true)}
