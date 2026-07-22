@@ -22,7 +22,7 @@ export default async function ScanPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -42,7 +42,7 @@ export default async function ScanPage({
 
   return (
     <div className="min-h-screen">
-      <AppHeader role={profile.role} />
+      <AppHeader role={profile.role} avatarUrl={profile.avatar_url} fullName={profile.full_name ?? undefined} />
 
       <main className="mx-auto max-w-md px-6 py-12">
         <Link href="/staff" className="text-sm text-[#1C2620]/50 hover:text-[#1C2620]">

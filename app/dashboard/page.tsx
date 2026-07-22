@@ -206,14 +206,38 @@ export default async function DashboardPage() {
                   )}
                 </div>
 
-                <EventQRButton
-                  event={{ id: event.id, title: event.title, end_time: event.end_time }}
-                  userId={user.id}
-                  attendance={
-                    myAttendance?.find((a) => a.event_id === event.id) ?? null
-                  }
-                  requiresTimeOut={event.requires_time_out}
-                />
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  <Link
+                    href={`/dashboard/attendance/${event.id}`}
+                    aria-label={`View your attendance for ${event.title}`}
+                    title="Attendance"
+                    style={{
+                      boxShadow:
+                        '4px 4px 10px rgba(168,155,130,0.25), -3px -3px 8px rgba(255,255,255,0.9)',
+                    }}
+                    className="clay-transition flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#3A362E]/70 hover:-translate-y-0.5 hover:text-[#3A362E] active:translate-y-0"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M9 5H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinejoin="round"
+                      />
+                      <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M8 12h8M8 16h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                  </Link>
+
+                  <EventQRButton
+                    event={{ id: event.id, title: event.title, end_time: event.end_time }}
+                    userId={user.id}
+                    attendance={
+                      myAttendance?.find((a) => a.event_id === event.id) ?? null
+                    }
+                    requiresTimeOut={event.requires_time_out}
+                  />
+                </div>
               </div>
             ))}
           </div>
