@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { CreateEventForm } from '@/components/CreateEventForm'
 import { EventQRButton } from '@/components/EventQRButton'
+import { EditEventForm } from '@/components/EditEventForm'
 
 const cardShadow = {
   boxShadow:
@@ -59,33 +60,32 @@ export default async function StaffPage() {
           {events?.map((event, i) => (
             <div
               key={event.id}
-              className="clay-transition flex animate-fade-in-up items-center justify-between gap-3 rounded-2xl bg-white p-4 hover:-translate-y-0.5"
+              className="clay-transition flex animate-fade-in-up flex-col gap-3 rounded-2xl bg-white p-4 hover:-translate-y-0.5"
               style={{ ...cardShadow, animationDelay: `${80 + i * 60}ms` }}
             >
-              <div className="min-w-0 flex-1">
-                <p className="font-[family-name:var(--font-display)] font-semibold text-[#3A362E]">
-                  {event.title}
+              <p className="font-[family-name:var(--font-display)] font-semibold text-[#3A362E]">
+                {event.title}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs text-[#4C8266]">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                    <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                  {new Date(event.start_time).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZone: 'Asia/Manila',
+                  })}
                 </p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                  <p className="flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs text-[#4C8266]">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                      <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                    </svg>
-                    {new Date(event.start_time).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      timeZone: 'Asia/Manila',
-                    })}
-                  </p>
-                  <span className="rounded-full bg-[#DCEEE1] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4C8266]">
-                    {event.status}
-                  </span>
-                </div>
+                <span className="rounded-full bg-[#DCEEE1] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4C8266]">
+                  {event.status}
+                </span>
                 {event.location && (
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-[#3A362E]/45">
+                  <p className="flex items-center gap-1.5 text-xs text-[#3A362E]/45">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
                       <path
                         d="M12 21s7-6.5 7-11.5a7 7 0 1 0-14 0C5 14.5 12 21 12 21z"
@@ -99,7 +99,17 @@ export default async function StaffPage() {
                 )}
               </div>
 
-              <div className="flex flex-shrink-0 items-center gap-2">
+              <div className="flex flex-shrink-0 items-center justify-end gap-2">
+                <EditEventForm
+                  event={{
+                    id: event.id,
+                    title: event.title,
+                    location: event.location,
+                    start_time: event.start_time,
+                    end_time: event.end_time,
+                    requires_time_out: event.requires_time_out,
+                  }}
+                />
                 <EventQRButton
                   event={{ id: event.id, title: event.title, end_time: event.end_time }}
                   userId={user.id}
