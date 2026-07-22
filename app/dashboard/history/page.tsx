@@ -97,11 +97,23 @@ export default async function HistoryPage() {
                 </span>
               </div>
               <p className="mt-1 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
-                In: {row.time_in ? new Date(row.time_in).toLocaleString() : '—'}
+                In:{' '}
+                {row.time_in
+                  ? new Date(row.time_in).toLocaleString('en-US', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                      timeZone: 'Asia/Manila',
+                    })
+                  : '—'}
               </p>
               {row.time_out && (
                 <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
-                  Out: {new Date(row.time_out).toLocaleString()}
+                  Out:{' '}
+                  {new Date(row.time_out).toLocaleString('en-US', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                    timeZone: 'Asia/Manila',
+                  })}
                 </p>
               )}
               {row.events?.location && (

@@ -189,6 +189,7 @@ export default async function DashboardPage() {
                       day: 'numeric',
                       hour: 'numeric',
                       minute: '2-digit',
+                      timeZone: 'Asia/Manila',
                     })}
                   </p>
                   {event.location && (

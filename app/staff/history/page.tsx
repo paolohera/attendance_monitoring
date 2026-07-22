@@ -102,6 +102,7 @@ export default async function StaffHistoryPage() {
                       year: 'numeric',
                       hour: 'numeric',
                       minute: '2-digit',
+                      timeZone: 'Asia/Manila',
                     })}
                   </p>
                   <span className="rounded-full bg-[#3A362E]/8 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#3A362E]/50">

@@ -77,6 +77,7 @@ export default async function StaffPage() {
                       day: 'numeric',
                       hour: 'numeric',
                       minute: '2-digit',
+                      timeZone: 'Asia/Manila',
                     })}
                   </p>
                   <span className="rounded-full bg-[#DCEEE1] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4C8266]">

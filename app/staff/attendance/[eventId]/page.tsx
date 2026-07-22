@@ -178,6 +178,7 @@ export default async function EventAttendancePage({
                       ? new Date(row.time_in).toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
+                          timeZone: 'Asia/Manila',
                         })
                       : '—'}
                   </p>
@@ -187,6 +188,7 @@ export default async function EventAttendancePage({
                       {new Date(row.time_out).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit',
+                        timeZone: 'Asia/Manila',
                       })}
                     </p>
                   )}
