@@ -144,8 +144,8 @@ export function CreateEventForm({ userId }: { userId: string }) {
               />
             </label>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1.5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="flex min-w-0 flex-col gap-1.5">
                 <span className="text-sm font-medium text-[#3A362E]/75">Starts</span>
                 <input
                   required
@@ -153,10 +153,10 @@ export function CreateEventForm({ userId }: { userId: string }) {
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   style={inputShadow}
-                  className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none"
+                  className="w-full min-w-0 rounded-2xl bg-[#F3EFE7] px-3 py-2.5 text-sm text-[#3A362E] outline-none"
                 />
               </label>
-              <label className="flex flex-col gap-1.5">
+              <label className="flex min-w-0 flex-col gap-1.5">
                 <span className="text-sm font-medium text-[#3A362E]/75">Ends</span>
                 <input
                   required
@@ -164,7 +164,7 @@ export function CreateEventForm({ userId }: { userId: string }) {
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                   style={inputShadow}
-                  className="rounded-2xl bg-[#F3EFE7] px-4 py-2.5 text-sm text-[#3A362E] outline-none"
+                  className="w-full min-w-0 rounded-2xl bg-[#F3EFE7] px-3 py-2.5 text-sm text-[#3A362E] outline-none"
                 />
               </label>
             </div>
