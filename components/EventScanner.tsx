@@ -16,6 +16,7 @@ type ScanResult = {
   student_id?: string
   section?: string
   status?: string
+  role?: 'student' | 'ssc' | 'admin'
 }
 
 const REASON_MESSAGES: Record<string, string> = {
@@ -173,7 +174,18 @@ export function EventScanner({ event }: { event: EventInfo }) {
         {lastResult === null && 'Point the camera at a student QR code.'}
         {lastResult?.success && (
           <>
-            {lastResult.student_name} — {lastResult.student_id} ({lastResult.section})
+            {lastResult.role && lastResult.role !== 'student' ? (
+              <>
+                {lastResult.student_name}
+                <span className="ml-1.5 rounded-full bg-[#DCEEE1] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#4C8266]">
+                  {lastResult.role}
+                </span>
+              </>
+            ) : (
+              <>
+                {lastResult.student_name} — {lastResult.student_id} ({lastResult.section})
+              </>
+            )}
             {lastResult.status === 'late' && (
               <span className="ml-1.5 rounded-full bg-[#F3D9D4] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#B3453A]">
                 Late

@@ -70,8 +70,10 @@ export default async function EventAttendancePage({
           data: [] as { id: string; student_id: string; section: string; gender: 'male' | 'female' | null }[],
         }),
     studentIds.length
-      ? supabase.from('profiles').select('id, full_name, avatar_url').in('id', studentIds)
-      : Promise.resolve({ data: [] as { id: string; full_name: string; avatar_url: string | null }[] }),
+      ? supabase.from('profiles').select('id, full_name, avatar_url, role').in('id', studentIds)
+      : Promise.resolve({
+          data: [] as { id: string; full_name: string; avatar_url: string | null; role: string }[],
+        }),
   ])
 
   const rows = (attendance ?? []).map((a) => {
@@ -83,6 +85,7 @@ export default async function EventAttendancePage({
       name: studentProfile?.full_name ?? 'Unknown',
       avatarUrl: studentProfile?.avatar_url ?? null,
       gender: student?.gender ?? null,
+      role: studentProfile?.role ?? 'student',
     }
   })
 
@@ -126,7 +129,9 @@ export default async function EventAttendancePage({
           {rows.map((row, i) => (
             <div
               key={i}
-              className="flex animate-fade-in-up items-center justify-between rounded-2xl bg-white px-4 py-3"
+              className={`flex animate-fade-in-up items-center justify-between rounded-2xl bg-white px-4 py-3 ${
+                row.role !== 'student' ? 'border-2 border-[#8FC1A3]' : ''
+              }`}
               style={{ ...cardShadow, animationDelay: `${80 + i * 40}ms` }}
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -155,33 +160,41 @@ export default async function EventAttendancePage({
                     {row.name}
                   </p>
                   <p className="mt-0.5 font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
-                    {row.student?.student_id ?? '—'}
-                    {row.student?.section ? ` · ${row.student.section}` : ''}
+                    {row.role === 'student'
+                      ? `${row.student?.student_id ?? '—'}${row.student?.section ? ` · ${row.student.section}` : ''}`
+                      : 'Staff check-in'}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p
-                  className={`font-[family-name:var(--font-mono)] text-xs ${
-                    row.status === 'late' ? 'font-semibold text-[#B3453A]' : 'text-[#3A362E]/60'
-                  }`}
-                >
-                  {row.status === 'late' ? 'Late' : 'In'}:{' '}
-                  {row.time_in
-                    ? new Date(row.time_in).toLocaleTimeString('en-US', {
+              <div className="flex flex-col items-end justify-between self-stretch text-right">
+                <div>
+                  <p
+                    className={`font-[family-name:var(--font-mono)] text-xs ${
+                      row.status === 'late' ? 'font-semibold text-[#B3453A]' : 'text-[#3A362E]/60'
+                    }`}
+                  >
+                    {row.status === 'late' ? 'Late' : 'In'}:{' '}
+                    {row.time_in
+                      ? new Date(row.time_in).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })
+                      : '—'}
+                  </p>
+                  {row.time_out && (
+                    <p className="font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/60">
+                      Out:{' '}
+                      {new Date(row.time_out).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit',
-                      })
-                    : '—'}
-                </p>
-                {row.time_out && (
-                  <p className="font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/60">
-                    Out:{' '}
-                    {new Date(row.time_out).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </p>
+                      })}
+                    </p>
+                  )}
+                </div>
+                {row.role !== 'student' && (
+                  <span className="mt-1 rounded-full bg-[#DCEEE1] px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-[#4C8266]">
+                    {row.role}
+                  </span>
                 )}
               </div>
             </div>

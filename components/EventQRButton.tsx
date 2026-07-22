@@ -12,8 +12,28 @@ type EventInfo = {
   end_time: string
 }
 
-export function EventQRButton({ event, userId }: { event: EventInfo; userId: string }) {
+type AttendanceState = {
+  time_in: string | null
+  time_out: string | null
+} | null
+
+export function EventQRButton({
+  event,
+  userId,
+  attendance = null,
+  requiresTimeOut = false,
+}: {
+  event: EventInfo
+  userId: string
+  attendance?: AttendanceState
+  requiresTimeOut?: boolean
+}) {
   const supabase = createClient()
+
+  const hasTimedIn = !!attendance?.time_in
+  const hasTimedOut = !!attendance?.time_out
+  const awaitingTimeOut = hasTimedIn && requiresTimeOut && !hasTimedOut
+  const fullyCheckedIn = hasTimedIn && (!requiresTimeOut || hasTimedOut)
 
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -70,26 +90,54 @@ export function EventQRButton({ event, userId }: { event: EventInfo; userId: str
 
   return (
     <>
-      <button
-        onClick={handleGenerate}
-        aria-label={`Generate QR for ${event.title}`}
-        title="Generate QR"
-        style={{
-          boxShadow:
-            '4px 4px 10px rgba(168,155,130,0.28), -3px -3px 8px rgba(255,255,255,0.9)',
-        }}
-        className="clay-transition flex h-9 w-9 items-center justify-center rounded-full bg-[#8FC1A3] text-[#28402F] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.95]"
-      >
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
-          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
-          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
-          <path
-            d="M14 14h3v3h-3zM20 14h1v1h-1zM14 20h1v1h-1zM17 17h1v1h-1zM20 20h1v1h-1z"
-            fill="currentColor"
-          />
-        </svg>
-      </button>
+      {fullyCheckedIn ? (
+        <div
+          aria-label="Already checked in"
+          title="Checked in"
+          style={{
+            boxShadow:
+              '4px 4px 10px rgba(168,155,130,0.28), -3px -3px 8px rgba(255,255,255,0.9)',
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#DCEEE1] text-[#4C8266]"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 13l4 4L19 7"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      ) : (
+        <button
+          onClick={handleGenerate}
+          aria-label={
+            awaitingTimeOut ? `Generate time-out QR for ${event.title}` : `Generate QR for ${event.title}`
+          }
+          title={awaitingTimeOut ? 'Time out' : 'Generate QR'}
+          style={{
+            boxShadow:
+              '4px 4px 10px rgba(168,155,130,0.28), -3px -3px 8px rgba(255,255,255,0.9)',
+          }}
+          className={`clay-transition flex h-9 w-9 items-center justify-center rounded-full hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.95] ${
+            awaitingTimeOut
+              ? 'bg-[#F0B489] text-[#5A3A1B]'
+              : 'bg-[#8FC1A3] text-[#28402F]'
+          }`}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+            <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+            <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+            <path
+              d="M14 14h3v3h-3zM20 14h1v1h-1zM14 20h1v1h-1zM17 17h1v1h-1zM20 20h1v1h-1z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      )}
 
       {open && createPortal(
         <div
@@ -108,6 +156,9 @@ export function EventQRButton({ event, userId }: { event: EventInfo; userId: str
             <p className="font-[family-name:var(--font-display)] text-base font-semibold text-[#3A362E]">
               {event.title}
             </p>
+            {awaitingTimeOut && (
+              <p className="mt-0.5 text-xs font-medium text-[#B3763F]">Time-out QR</p>
+            )}
 
             {loading && (
               <div className="mt-8 mb-8 flex flex-col items-center gap-2 text-sm text-[#3A362E]/60">

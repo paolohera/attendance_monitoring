@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { CreateEventForm } from '@/components/CreateEventForm'
+import { EventQRButton } from '@/components/EventQRButton'
 
 const cardShadow = {
   boxShadow:
@@ -98,6 +99,10 @@ export default async function StaffPage() {
               </div>
 
               <div className="flex flex-shrink-0 items-center gap-2">
+                <EventQRButton
+                  event={{ id: event.id, title: event.title, end_time: event.end_time }}
+                  userId={user.id}
+                />
                 <Link
                   href={`/staff/attendance/${event.id}`}
                   aria-label={`View attendance for ${event.title}`}

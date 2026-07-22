@@ -44,10 +44,20 @@ export default async function DashboardPage() {
 
   const { data: events } = await supabase
     .from('events')
-    .select('id, title, location, start_time, end_time, status')
+    .select('id, title, location, start_time, end_time, status, requires_time_out')
     .gte('end_time', nowIso)
     .neq('status', 'cancelled')
     .order('start_time', { ascending: true })
+
+  const eventIds = events?.map((e) => e.id) ?? []
+
+  const { data: myAttendance } = eventIds.length
+    ? await supabase
+        .from('attendance')
+        .select('event_id, time_in, time_out')
+        .eq('student_id', user.id)
+        .in('event_id', eventIds)
+    : { data: [] as { event_id: string; time_in: string | null; time_out: string | null }[] }
 
   const fullName = profile?.full_name ?? 'Student'
 
@@ -199,6 +209,10 @@ export default async function DashboardPage() {
                 <EventQRButton
                   event={{ id: event.id, title: event.title, end_time: event.end_time }}
                   userId={user.id}
+                  attendance={
+                    myAttendance?.find((a) => a.event_id === event.id) ?? null
+                  }
+                  requiresTimeOut={event.requires_time_out}
                 />
               </div>
             ))}
