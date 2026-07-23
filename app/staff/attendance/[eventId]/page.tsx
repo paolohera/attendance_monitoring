@@ -110,13 +110,42 @@ export default async function EventAttendancePage({
           Back to events
         </Link>
 
-        <div className="mt-3 flex animate-fade-in-up items-center justify-between">
-          <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[#3A362E]">
+        <div className="mt-3 flex animate-fade-in-up items-center justify-between gap-3">
+          <h1 className="min-w-0 truncate font-[family-name:var(--font-display)] text-xl font-semibold text-[#3A362E]">
             {event.title}
           </h1>
-          <span className="font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
-            {rows.length} checked in
-          </span>
+          <div className="flex flex-shrink-0 items-center gap-3">
+            <span className="font-[family-name:var(--font-mono)] text-xs text-[#3A362E]/45">
+              {rows.length} checked in
+            </span>
+            <a
+              href={`/api/staff/export-attendance/${event.id}`}
+              aria-label={`Export attendance for ${event.title} to Excel`}
+              title="Export to Excel"
+              style={{
+                boxShadow:
+                  '4px 4px 10px rgba(168,155,130,0.25), -3px -3px 8px rgba(255,255,255,0.9)',
+              }}
+              className="clay-transition flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#3A362E]/70 hover:-translate-y-0.5 hover:text-[#3A362E] active:translate-y-0"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 3v12m0 0l-4-4m4 4l4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
         </div>
 
         {rows.length === 0 && (
