@@ -99,6 +99,36 @@ export function AppHeader({
               </svg>
             </Link>
           )}
+          {role === 'admin' && (
+            <Link
+              href="/staff/users"
+              aria-label="Manage users"
+              title="Manage users"
+              className="clay-transition flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" />
+                <path
+                  d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M16 8.5a2.6 2.6 0 1 0 0-5.2"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M15 13.9c2.5.3 4.5 2.3 4.5 5.1"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </Link>
+          )}
           <Link
             href="/profile"
             aria-label="Profile"
