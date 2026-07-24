@@ -171,6 +171,9 @@ export function StaffEventCard({
               requires_time_out: event.requires_time_out,
             }}
           />
+
+{/* atay */}
+
           <EventQRButton
             event={{ id: event.id, title: event.title, end_time: event.end_time }}
             userId={userId}
