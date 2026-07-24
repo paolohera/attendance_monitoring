@@ -29,14 +29,19 @@ export default async function StaffHistoryPage() {
     redirect('/dashboard')
   }
 
-  const nowIso = new Date().toISOString()
+  // Mirror of the GRACE_PERIOD_MS cutoff used in app/staff/page.tsx —
+  // an event only moves here once its time-out grace window is fully
+  // over. If these two cutoffs ever drift apart, the same event can
+  // show up in both "Events" and "Event history" at once.
+  const GRACE_PERIOD_MS = 60 * 60 * 1000 // 1 hour
+  const cutoffIso = new Date(Date.now() - GRACE_PERIOD_MS).toISOString()
 
-  // Past events: already ended, or explicitly cancelled — either way,
-  // no longer relevant for scanning, only for looking back at.
+  // Past events: grace period fully elapsed, or explicitly cancelled —
+  // either way, no longer relevant for scanning, only for looking back at.
   const { data: events } = await supabase
     .from('events')
     .select('id, title, location, start_time, end_time, status')
-    .or(`end_time.lt.${nowIso},status.eq.cancelled`)
+    .or(`end_time.lt.${cutoffIso},status.eq.cancelled`)
     .order('start_time', { ascending: false })
 
   return (
@@ -102,7 +107,6 @@ export default async function StaffHistoryPage() {
                       year: 'numeric',
                       hour: 'numeric',
                       minute: '2-digit',
-                      timeZone: 'Asia/Manila',
                     })}
                   </p>
                   <span className="rounded-full bg-[#3A362E]/8 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#3A362E]/50">

@@ -4,11 +4,18 @@ import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { EventQRButton } from '@/components/EventQRButton'
 import { ClayAvatar } from '@/components/ClayAvatar'
+import { EventStatusBadge } from '@/components/EventStatusBadge'
 
 const clayShadow = {
   boxShadow:
     '10px 10px 24px rgba(168,155,130,0.3), -8px -8px 20px rgba(255,255,255,0.9)',
 }
+
+// How long an event stays visible/scannable after its official end
+// time — students (and SSC/admin) who timed in still need a window
+// to time out, so the event can't just vanish the instant the clock
+// hits end_time.
+const GRACE_PERIOD_MS = 60 * 60 * 1000 // 1 hour
 
 const AVATAR_TONES = ['mint', 'peach', 'sky', 'blush'] as const
 
@@ -40,12 +47,15 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
-  const nowIso = new Date().toISOString()
+  // An event with end_time >= this cutoff is still within its grace
+  // period (i.e. end_time + GRACE_PERIOD_MS >= now), so it stays
+  // visible even though it's technically "ended".
+  const cutoffIso = new Date(Date.now() - GRACE_PERIOD_MS).toISOString()
 
   const { data: events } = await supabase
     .from('events')
     .select('id, title, location, start_time, end_time, status, requires_time_out')
-    .gte('end_time', nowIso)
+    .gte('end_time', cutoffIso)
     .neq('status', 'cancelled')
     .order('start_time', { ascending: true })
 
@@ -192,6 +202,9 @@ export default async function DashboardPage() {
                       timeZone: 'Asia/Manila',
                     })}
                   </p>
+                  <div className="mt-1.5">
+                    <EventStatusBadge status={event.status} endTime={event.end_time} />
+                  </div>
                   {event.location && (
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-[#3A362E]/45">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">

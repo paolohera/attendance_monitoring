@@ -1,15 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { CreateEventForm } from '@/components/CreateEventForm'
-import { EventQRButton } from '@/components/EventQRButton'
-import { EditEventForm } from '@/components/EditEventForm'
+import { StaffEventCard } from '@/components/StaffEventCard'
 
-const cardShadow = {
-  boxShadow:
-    '6px 6px 14px rgba(168,155,130,0.25), -5px -5px 12px rgba(255,255,255,0.9)',
-}
+// Keep an event visible/scannable for a while after its official end
+// time, so anyone who timed in still has a window to time out instead
+// of the event just vanishing from the SSC/admin dashboard.
+const GRACE_PERIOD_MS = 60 * 60 * 1000 // 1 hour
 
 export default async function StaffPage() {
   const supabase = await createClient()
@@ -32,10 +30,12 @@ export default async function StaffPage() {
     redirect('/dashboard')
   }
 
+  const cutoffIso = new Date(Date.now() - GRACE_PERIOD_MS).toISOString()
+
   const { data: events } = await supabase
     .from('events')
     .select('id, title, location, start_time, end_time, status, requires_time_out')
-    .gt('end_time', new Date().toISOString())
+    .gt('end_time', cutoffIso)
     .order('start_time', { ascending: true })
 
   return (
@@ -58,98 +58,12 @@ export default async function StaffPage() {
           )}
 
           {events?.map((event, i) => (
-            <div
+            <StaffEventCard
               key={event.id}
-              className="clay-transition flex animate-fade-in-up flex-col gap-3 rounded-2xl bg-white p-4 hover:-translate-y-0.5"
-              style={{ ...cardShadow, animationDelay: `${80 + i * 60}ms` }}
-            >
-              <p className="font-[family-name:var(--font-display)] font-semibold text-[#3A362E]">
-                {event.title}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs text-[#4C8266]">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                    <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                    <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  </svg>
-                  {new Date(event.start_time).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    timeZone: 'Asia/Manila',
-                  })}
-                </p>
-                <span className="rounded-full bg-[#DCEEE1] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4C8266]">
-                  {event.status}
-                </span>
-                {event.location && (
-                  <p className="flex items-center gap-1.5 text-xs text-[#3A362E]/45">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                      <path
-                        d="M12 21s7-6.5 7-11.5a7 7 0 1 0-14 0C5 14.5 12 21 12 21z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                      />
-                      <circle cx="12" cy="9.5" r="2.2" stroke="currentColor" strokeWidth="1.8" />
-                    </svg>
-                    {event.location}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-shrink-0 items-center justify-end gap-2">
-                <EditEventForm
-                  event={{
-                    id: event.id,
-                    title: event.title,
-                    location: event.location,
-                    start_time: event.start_time,
-                    end_time: event.end_time,
-                    requires_time_out: event.requires_time_out,
-                  }}
-                />
-                <EventQRButton
-                  event={{ id: event.id, title: event.title, end_time: event.end_time }}
-                  userId={user.id}
-                />
-                <Link
-                  href={`/staff/attendance/${event.id}`}
-                  aria-label={`View attendance for ${event.title}`}
-                  title="Attendance"
-                  style={{
-                    boxShadow:
-                      '4px 4px 10px rgba(168,155,130,0.25), -3px -3px 8px rgba(255,255,255,0.9)',
-                  }}
-                  className="clay-transition flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#3A362E]/70 hover:-translate-y-0.5 hover:text-[#3A362E] active:translate-y-0"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M9 5H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinejoin="round"
-                    />
-                    <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="1.8" />
-                    <path d="M8 12h8M8 16h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  </svg>
-                </Link>
-                <Link
-                  href={`/staff/scan/${event.id}`}
-                  aria-label={`Scan for ${event.title}`}
-                  title="Scan"
-                  className="clay-transition flex h-9 w-9 items-center justify-center rounded-full bg-[#3A362E] text-white hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.8" />
-                    <rect x="15" y="3" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.8" />
-                    <rect x="3" y="15" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.8" />
-                    <path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z" fill="currentColor" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
+              event={event}
+              userId={user.id}
+              animationDelay={`${80 + i * 60}ms`}
+            />
           ))}
         </div>
       </main>

@@ -17,6 +17,11 @@ type AttendanceState = {
   time_out: string | null
 } | null
 
+// A token minted for this event stays valid this long past the
+// event's official end time — so a "time out" QR generated right
+// as (or shortly after) the event ends isn't born already-expired.
+const GRACE_PERIOD_MS = 60 * 60 * 1000 // 1 hour
+
 export function EventQRButton({
   event,
   userId,
@@ -65,6 +70,9 @@ export function EventQRButton({
     }
 
     const newSignature = crypto.randomUUID()
+    const tokenExpiresAt = new Date(
+      new Date(event.end_time).getTime() + GRACE_PERIOD_MS
+    ).toISOString()
 
     const { data: inserted, error: insertError } = await supabase
       .from('qr_tokens')
@@ -72,7 +80,7 @@ export function EventQRButton({
         student_id: userId,
         event_id: event.id,
         signature: newSignature,
-        expires_at: event.end_time,
+        expires_at: tokenExpiresAt,
       })
       .select('signature, expires_at')
       .single()
