@@ -92,8 +92,14 @@ export function StaffEventCard({
     return () => clearInterval(id)
   }, [])
 
+  // All three boundaries computed live from actual timestamps — the
+  // stored `status` column never auto-updates as time passes, so it's
+  // only trusted for the one thing it's actually a manual, intentional
+  // flag for: `cancelled`.
+  const start = new Date(event.start_time).getTime()
   const end = new Date(event.end_time).getTime()
   const graceEnd = end + GRACE_PERIOD_MS
+  const hasStarted = now >= start
   const hasEnded = now >= end
   const inGracePeriod = hasEnded && now < graceEnd
 
@@ -104,7 +110,7 @@ export function StaffEventCard({
         ? 'ended'
         : hasEnded
           ? 'past-grace'
-          : event.status === 'ongoing'
+          : hasStarted
             ? 'ongoing'
             : 'upcoming'
 
@@ -171,9 +177,6 @@ export function StaffEventCard({
               requires_time_out: event.requires_time_out,
             }}
           />
-
-{/* atay */}
-
           <EventQRButton
             event={{ id: event.id, title: event.title, end_time: event.end_time }}
             userId={userId}
