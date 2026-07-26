@@ -85,9 +85,20 @@ export function ResetPasswordButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="clay-transition text-xs font-medium text-[#4C8266] hover:text-[#3A362E]"
+        aria-label={`Reset password for ${userName}`}
+        title={`Reset password for ${userName}`}
+        className="clay-transition flex h-8 w-8 items-center justify-center rounded-full text-[#4C8266] hover:bg-[#DCEEE1] hover:text-[#3A362E]"
       >
-        Reset password
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="8" cy="15" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+          <path
+            d="M10.3 12.7L18 5M18 5l3 3M15 8l2 2"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
 
       {open && createPortal(
