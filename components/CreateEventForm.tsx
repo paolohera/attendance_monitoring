@@ -21,7 +21,21 @@ const inputShadow = {
     'inset 4px 4px 10px rgba(168,155,130,0.22), inset -4px -4px 10px rgba(255,255,255,0.85)',
 }
 
-export function CreateEventForm({ userId }: { userId: string }) {
+export function CreateEventForm({
+  userId,
+  onCreate,
+  onCreated,
+}: {
+  userId: string
+  onCreate?: (input: {
+    title: string
+    location: string
+    start_time: string
+    end_time: string
+    requires_time_out: boolean
+  }) => Promise<{ error: string | null }>
+  onCreated?: () => void
+}) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -56,6 +70,29 @@ export function CreateEventForm({ userId }: { userId: string }) {
 
     setLoading(true)
 
+    if (onCreate) {
+      const { error: createError } = await onCreate({
+        title,
+        location,
+        start_time: new Date(startTime).toISOString(),
+        end_time: new Date(endTime).toISOString(),
+        requires_time_out: requiresTimeOut,
+      })
+
+      setLoading(false)
+
+      if (createError) {
+        setError(createError)
+        return
+      }
+
+      resetAndClose()
+      return
+    }
+
+    // Fallback path for anywhere this form gets used without the
+    // SWR-backed optimistic flow — does the insert directly, same as
+    // before.
     const { error: insertError } = await supabase.from('events').insert({
       title,
       location,
@@ -73,7 +110,12 @@ export function CreateEventForm({ userId }: { userId: string }) {
     }
 
     resetAndClose()
-    router.refresh()
+
+    if (onCreated) {
+      onCreated()
+    } else {
+      router.refresh()
+    }
   }
 
   return (

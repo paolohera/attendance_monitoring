@@ -39,7 +39,21 @@ function toLocalInputValue(iso: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function EditEventForm({ event }: { event: EventInfo }) {
+export function EditEventForm({
+  event,
+  onSave,
+  onSaved,
+}: {
+  event: EventInfo
+  onSave?: (input: {
+    title: string
+    location: string
+    start_time: string
+    end_time: string
+    requires_time_out: boolean
+  }) => Promise<{ error: string | null }>
+  onSaved?: () => void
+}) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -78,6 +92,29 @@ export function EditEventForm({ event }: { event: EventInfo }) {
 
     setLoading(true)
 
+    if (onSave) {
+      const { error: saveError } = await onSave({
+        title,
+        location,
+        start_time: new Date(startTime).toISOString(),
+        end_time: new Date(endTime).toISOString(),
+        requires_time_out: requiresTimeOut,
+      })
+
+      setLoading(false)
+
+      if (saveError) {
+        setError(saveError)
+        return
+      }
+
+      setOpen(false)
+      return
+    }
+
+    // Fallback path for anywhere this form gets used without the
+    // SWR-backed optimistic flow — does the update directly, same as
+    // before.
     const { error: updateError } = await supabase
       .from('events')
       .update({
@@ -97,7 +134,12 @@ export function EditEventForm({ event }: { event: EventInfo }) {
     }
 
     setOpen(false)
-    router.refresh()
+
+    if (onSaved) {
+      onSaved()
+    } else {
+      router.refresh()
+    }
   }
 
   return (

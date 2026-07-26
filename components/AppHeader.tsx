@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -40,8 +40,40 @@ export function AppHeader({
   const supabase = createClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const defaultAvatarSrc = gender ? `/avatars/${gender}.png` : null
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function fetchUnread() {
+      const { data } = await supabase.rpc('get_unread_message_count')
+      if (isMounted && typeof data === 'number') {
+        setUnreadCount(data)
+      }
+    }
+
+    fetchUnread()
+
+    // Any new message anywhere could be one of ours — re-check the
+    // count rather than trying to filter this at the subscription
+    // level (Realtime's column filters can't express "I'm either
+    // participant on the conversation this belongs to").
+    const channel = supabase
+      .channel('header-unread-messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        () => fetchUnread()
+      )
+      .subscribe()
+
+    return () => {
+      isMounted = false
+      supabase.removeChannel(channel)
+    }
+  }, [supabase])
 
   async function handleConfirmSignOut() {
     setSigningOut(true)
@@ -57,9 +89,6 @@ export function AppHeader({
           href={role === 'student' ? '/dashboard' : '/staff'}
           className="clay-transition flex items-center gap-2 hover:opacity-80"
         >
-          <span className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-[#3A362E]">
-            Attendance
-          </span>
           <span
             className="rounded-full bg-[#DCEEE1] px-2.5 py-1 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-wide text-[#4C8266]"
             style={clayShadowSm}
@@ -68,37 +97,6 @@ export function AppHeader({
           </span>
         </Link>
         <div className="flex items-center gap-2">
-          {role !== 'student' && (
-            <Link
-              href="/staff/history"
-              aria-label="Event history"
-              title="History"
-              className="clay-transition flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M3 12a9 9 0 1 0 3-6.7"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M3 4v5h5"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 8v4l3 2"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-          )}
           {role === 'admin' && (
             <Link
               href="/staff/users"
@@ -129,6 +127,28 @@ export function AppHeader({
               </svg>
             </Link>
           )}
+          <Link
+            href="/messages"
+            aria-label={unreadCount > 0 ? `Messages, ${unreadCount} unread` : 'Messages'}
+            title="Messages"
+            className="clay-transition relative flex h-9 w-9 items-center justify-center rounded-full text-[#3A362E]/55 hover:bg-[#3A362E]/5 hover:text-[#3A362E]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" />
+              <path
+                d="M4 6.5l8 6 8-6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#D98D80] px-1 text-[9px] font-semibold text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
           <Link
             href="/profile"
             aria-label="Profile"

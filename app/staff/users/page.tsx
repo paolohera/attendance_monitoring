@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { AppHeader } from '@/components/AppHeader'
 import { ClayAvatar } from '@/components/ClayAvatar'
 import { ResetPasswordButton } from '@/components/ResetPasswordButton'
+import { MessageComposeButton } from '@/components/MessageComposeButton'
 
 const cardShadow = {
   boxShadow:
@@ -147,7 +148,8 @@ export default async function UsersPage() {
               {row.id === user.id ? (
                 <span className="flex-shrink-0 text-xs text-[#3A362E]/35">This is you</span>
               ) : (
-                <div className="flex-shrink-0">
+                <div className="flex flex-shrink-0 items-center gap-3">
+                  <MessageComposeButton userId={row.id} userName={row.full_name ?? 'this user'} />
                   <ResetPasswordButton userId={row.id} userName={row.full_name ?? 'this user'} />
                 </div>
               )}

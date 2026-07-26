@@ -6,8 +6,8 @@ import { EditEventForm } from '@/components/EditEventForm'
 import { EventQRButton } from '@/components/EventQRButton'
 
 // Keep in sync with the GRACE_PERIOD_MS used in app/staff/page.tsx,
-// app/dashboard/page.tsx, app/staff/history/page.tsx, and
-// EventQRButton.tsx.
+// app/dashboard/page.tsx, app/staff/history/page.tsx,
+// StaffEventsList.tsx, and EventQRButton.tsx.
 const GRACE_PERIOD_MS = 60 * 60 * 1000 // 1 hour
 
 const cardShadow = {
@@ -23,7 +23,7 @@ function formatRemaining(ms: number) {
   return `${m}m`
 }
 
-type EventInfo = {
+export type EventInfo = {
   id: string
   title: string
   location: string | null
@@ -80,10 +80,21 @@ export function StaffEventCard({
   event,
   userId,
   animationDelay,
+  onEditEvent,
 }: {
   event: EventInfo
   userId: string
   animationDelay: string
+  onEditEvent?: (
+    id: string,
+    input: {
+      title: string
+      location: string
+      start_time: string
+      end_time: string
+      requires_time_out: boolean
+    }
+  ) => Promise<{ error: string | null }>
 }) {
   const [now, setNow] = useState(() => Date.now())
 
@@ -176,6 +187,7 @@ export function StaffEventCard({
               end_time: event.end_time,
               requires_time_out: event.requires_time_out,
             }}
+            onSave={onEditEvent ? (input) => onEditEvent(event.id, input) : undefined}
           />
           <EventQRButton
             event={{ id: event.id, title: event.title, end_time: event.end_time }}
