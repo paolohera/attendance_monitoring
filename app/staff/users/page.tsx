@@ -149,7 +149,11 @@ export default async function UsersPage() {
                 <span className="flex-shrink-0 text-xs text-[#3A362E]/35">This is you</span>
               ) : (
                 <div className="flex flex-shrink-0 items-center gap-3">
-                  <MessageComposeButton userId={row.id} userName={row.full_name ?? 'this user'} />
+                  <MessageComposeButton
+                    userId={row.id}
+                    userName={row.full_name ?? 'this user'}
+                    currentUserId={user.id}
+                  />
                   <ResetPasswordButton userId={row.id} userName={row.full_name ?? 'this user'} />
                 </div>
               )}

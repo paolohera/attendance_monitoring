@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ClayAvatar } from '@/components/ClayAvatar'
-import { Spinner } from '@/components/Spinner'
 
 const AVATAR_TONES = ['mint', 'peach', 'sky', 'blush'] as const
 
@@ -23,6 +22,10 @@ type Message = {
   content: string
   created_at: string
   read_at: string | null
+  // Client-only flags for messages that haven't been confirmed by the
+  // server yet — never present on rows that came from Supabase.
+  pending?: boolean
+  failed?: boolean
 }
 
 type OtherParticipant = {
@@ -30,6 +33,12 @@ type OtherParticipant = {
   full_name: string
   avatar_url: string | null
   role: string
+}
+
+function sortByCreatedAt(messages: Message[]) {
+  return [...messages].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  )
 }
 
 export function MessageThread({
@@ -46,7 +55,6 @@ export function MessageThread({
   const supabase = createClient()
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [draft, setDraft] = useState('')
-  const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const seenIds = useRef(new Set(initialMessages.map((m) => m.id)))
@@ -87,7 +95,23 @@ export function MessageThread({
           const incoming = payload.new as Message
           if (seenIds.current.has(incoming.id)) return
           seenIds.current.add(incoming.id)
-          setMessages((prev) => [...prev, incoming])
+
+          setMessages((prev) => {
+            // If our own optimistic bubble for this exact message is
+            // still sitting there (pending), replace it in place rather
+            // than adding a second copy — this is the race where the
+            // realtime echo of our own send arrives before our own
+            // insert call has finished resolving.
+            const pendingMatch = prev.find(
+              (m) => m.pending && m.sender_id === incoming.sender_id && m.content === incoming.content
+            )
+            if (pendingMatch) {
+              return sortByCreatedAt(
+                prev.map((m) => (m.id === pendingMatch.id ? { ...incoming, pending: false } : m))
+              )
+            }
+            return sortByCreatedAt([...prev, incoming])
+          })
 
           // If it's from the other person and this thread is open,
           // mark it read right away.
@@ -112,8 +136,24 @@ export function MessageThread({
     const content = draft.trim()
     if (!content) return
 
-    setSending(true)
     setError(null)
+    setDraft('')
+
+    // Show the bubble immediately — don't wait for the network round
+    // trip. A temporary client-side id keeps it distinguishable until
+    // the real row comes back (or the realtime channel delivers it
+    // first, handled above).
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const optimisticMessage: Message = {
+      id: tempId,
+      sender_id: currentUserId,
+      content,
+      created_at: new Date().toISOString(),
+      read_at: null,
+      pending: true,
+    }
+
+    setMessages((prev) => sortByCreatedAt([...prev, optimisticMessage]))
 
     const { data, error: insertError } = await supabase
       .from('messages')
@@ -121,16 +161,28 @@ export function MessageThread({
       .select('id, sender_id, content, created_at, read_at')
       .single()
 
-    setSending(false)
-
     if (insertError || !data) {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? { ...m, pending: false, failed: true } : m))
+      )
       setError('Could not send. Try again.')
       return
     }
 
     seenIds.current.add(data.id)
-    setMessages((prev) => [...prev, data])
-    setDraft('')
+
+    setMessages((prev) => {
+      // Drop the temp bubble and any copy that might already have
+      // arrived via the realtime channel for this same real id, then
+      // add the confirmed row once, cleanly.
+      const withoutTempOrDupe = prev.filter((m) => m.id !== tempId && m.id !== data.id)
+      return sortByCreatedAt([...withoutTempOrDupe, { ...data, pending: false }])
+    })
+  }
+
+  async function handleRetry(failedMessage: Message) {
+    setMessages((prev) => prev.filter((m) => m.id !== failedMessage.id))
+    setDraft(failedMessage.content)
   }
 
   return (
@@ -171,33 +223,55 @@ export function MessageThread({
             const isMine = m.sender_id === currentUserId
             return (
               <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                    isMine
-                      ? 'bg-[#8FC1A3] text-[#28402F]'
-                      : 'bg-white text-[#3A362E]'
-                  }`}
-                  style={
-                    isMine
-                      ? undefined
-                      : {
-                          boxShadow:
-                            '4px 4px 10px rgba(168,155,130,0.2), -3px -3px 8px rgba(255,255,255,0.9)',
-                        }
-                  }
-                >
-                  <p className="whitespace-pre-wrap break-words">{m.content}</p>
-                  <p
-                    className={`mt-1 text-right font-[family-name:var(--font-mono)] text-[10px] ${
-                      isMine ? 'text-[#28402F]/60' : 'text-[#3A362E]/40'
+                <div className="flex flex-col items-end gap-1">
+                  <div
+                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm transition-opacity ${
+                      m.pending ? 'opacity-60' : 'opacity-100'
+                    } ${
+                      m.failed
+                        ? 'bg-[#F3D9D4] text-[#B3453A]'
+                        : isMine
+                          ? 'bg-[#8FC1A3] text-[#28402F]'
+                          : 'bg-white text-[#3A362E]'
                     }`}
+                    style={
+                      isMine && !m.failed
+                        ? undefined
+                        : {
+                            boxShadow:
+                              '4px 4px 10px rgba(168,155,130,0.2), -3px -3px 8px rgba(255,255,255,0.9)',
+                          }
+                    }
                   >
-                    {new Date(m.created_at).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      timeZone: 'Asia/Manila',
-                    })}
-                  </p>
+                    <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                    <p
+                      className={`mt-1 text-right font-[family-name:var(--font-mono)] text-[10px] ${
+                        m.failed
+                          ? 'text-[#B3453A]/70'
+                          : isMine
+                            ? 'text-[#28402F]/60'
+                            : 'text-[#3A362E]/40'
+                      }`}
+                    >
+                      {m.failed
+                        ? 'Failed to send'
+                        : m.pending
+                          ? 'Sending…'
+                          : new Date(m.created_at).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Manila',
+                            })}
+                    </p>
+                  </div>
+                  {m.failed && (
+                    <button
+                      onClick={() => handleRetry(m)}
+                      className="clay-transition text-[11px] font-medium text-[#B3453A] hover:text-[#8a3229]"
+                    >
+                      Tap to retry
+                    </button>
+                  )}
                 </div>
               </div>
             )
@@ -216,25 +290,21 @@ export function MessageThread({
         />
         <button
           type="submit"
-          disabled={sending || !draft.trim()}
+          disabled={!draft.trim()}
           style={{
             boxShadow:
               '4px 4px 10px rgba(168,155,130,0.28), -3px -3px 8px rgba(255,255,255,0.9)',
           }}
           className="clay-transition flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#8FC1A3] text-[#28402F] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
         >
-          {sending ? (
-            <Spinner className="h-4 w-4" />
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 12l16-8-6 8 6 8-16-8z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 12l16-8-6 8 6 8-16-8z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       </form>
       {error && <p className="mt-2 text-xs text-[#B3453A]">{error}</p>}

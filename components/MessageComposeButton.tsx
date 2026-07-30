@@ -8,9 +8,11 @@ import { Spinner } from '@/components/Spinner'
 export function MessageComposeButton({
   userId,
   userName,
+  currentUserId,
 }: {
   userId: string
   userName: string
+  currentUserId: string
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -21,18 +23,26 @@ export function MessageComposeButton({
     setLoading(true)
     setError(null)
 
-    const { data, error: rpcError } = await supabase.rpc('get_or_create_conversation', {
-      p_other_user_id: userId,
-    })
+    // Only look — never create here. A conversation row should only
+    // ever come into existence together with its first real message
+    // (see send_first_message), so clicking "Message" and backing out
+    // without typing anything doesn't leave an empty conversation behind.
+    const { data: existing, error: queryError } = await supabase
+      .from('conversations')
+      .select('id')
+      .or(
+        `and(participant_one.eq.${currentUserId},participant_two.eq.${userId}),and(participant_one.eq.${userId},participant_two.eq.${currentUserId})`
+      )
+      .maybeSingle()
 
     setLoading(false)
 
-    if (rpcError || !data) {
-      setError('Could not start conversation.')
+    if (queryError) {
+      setError('Could not open conversation.')
       return
     }
 
-    router.push(`/messages/${data}`)
+    router.push(existing ? `/messages/${existing.id}` : `/messages/new/${userId}`)
   }
 
   return (
@@ -41,22 +51,10 @@ export function MessageComposeButton({
         onClick={handleClick}
         disabled={loading}
         aria-label={`Message ${userName}`}
-        title={`Message ${userName}`}
-        className="clay-transition flex h-8 w-8 items-center justify-center rounded-full text-[#4C8266] hover:bg-[#DCEEE1] hover:text-[#3A362E] disabled:opacity-50"
+        className="clay-transition flex items-center gap-1.5 text-xs font-medium text-[#4C8266] hover:text-[#3A362E] disabled:opacity-50"
       >
-        {loading ? (
-          <Spinner className="h-3.5 w-3.5" />
-        ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
+        {loading && <Spinner className="h-3.5 w-3.5" />}
+        Message
       </button>
       {error && <p className="text-[11px] text-[#B3453A]">{error}</p>}
     </div>
